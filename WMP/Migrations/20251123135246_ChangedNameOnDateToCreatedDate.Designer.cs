@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WMP.Data;
 
@@ -10,9 +11,11 @@ using WMP.Data;
 namespace WMP.Migrations
 {
     [DbContext(typeof(WMPContext))]
-    partial class WMPContextModelSnapshot : ModelSnapshot
+    [Migration("20251123135246_ChangedNameOnDateToCreatedDate")]
+    partial class ChangedNameOnDateToCreatedDate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -204,8 +207,6 @@ namespace WMP.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("FamilyId");
-
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
 
@@ -273,9 +274,6 @@ namespace WMP.Migrations
 
                     b.Property<string>("Description")
                         .HasColumnType("longtext");
-
-                    b.Property<int?>("MealDbId")
-                        .HasColumnType("int");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -366,15 +364,6 @@ namespace WMP.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("WMP.Data.ApplicationUser", b =>
-                {
-                    b.HasOne("WMP.Models.Family", "Family")
-                        .WithMany()
-                        .HasForeignKey("FamilyId");
-
-                    b.Navigation("Family");
                 });
 
             modelBuilder.Entity("WMP.Models.MealDateRecipe", b =>

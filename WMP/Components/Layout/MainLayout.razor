@@ -1,14 +1,31 @@
-﻿@inherits LayoutComponentBase
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Identity
+@using Mono.TextTemplating
+@using WMP.Data
+@inherits LayoutComponentBase
+
+@inject UserManager<ApplicationUser> UserManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <div class="main-page-layout">
     
-    <Navbar></Navbar>
     
-    <main>
-        <article>
-            @Body
-        </article>
-    </main>
+        <Navbar></Navbar>
+        @if (isLoading)
+        {
+            <span>Loading...</span>
+        }
+        else
+        {
+            <main>
+                <article>
+                    <CascadingValue Value="User" Name="User">
+                        @Body
+                    </CascadingValue>
+                </article>
+            </main>
+        }
+
 </div>
 
 <div id="blazor-error-ui" data-nosnippet>
@@ -16,3 +33,35 @@
     <a href="." class="reload">Reload</a>
     <span class="dismiss">🗙</span>
 </div>
+
+@code {
+
+    bool isLoading = true;
+    public ApplicationUser? User { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        isLoading = true;
+        StateHasChanged();
+        await base.OnInitializedAsync();
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        var applicationUser = await UserManager.GetUserAsync(user);
+
+        if (applicationUser != null)
+        {
+            User = applicationUser;
+        }
+        else
+        {
+            applicationUser = null;
+        }
+        
+        isLoading = false;
+        StateHasChanged();
+
+    }
+
+}

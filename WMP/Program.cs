@@ -47,6 +47,7 @@ builder.Services.AddIdentityCore<ApplicationUser>(options => { options.SignIn.Re
 builder.Services.AddControllers();
 
 builder.Services.AddScoped<IMealDbService, MealDbService>();
+builder.Services.AddScoped<IRecipeService, RecipeService>();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()

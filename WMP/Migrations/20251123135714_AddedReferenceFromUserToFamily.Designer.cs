@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WMP.Data;
 
@@ -10,9 +11,11 @@ using WMP.Data;
 namespace WMP.Migrations
 {
     [DbContext(typeof(WMPContext))]
-    partial class WMPContextModelSnapshot : ModelSnapshot
+    [Migration("20251123135714_AddedReferenceFromUserToFamily")]
+    partial class AddedReferenceFromUserToFamily
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -273,9 +276,6 @@ namespace WMP.Migrations
 
                     b.Property<string>("Description")
                         .HasColumnType("longtext");
-
-                    b.Property<int?>("MealDbId")
-                        .HasColumnType("int");
 
                     b.Property<string>("Name")
                         .IsRequired()
