@@ -1,0 +1,70 @@
+﻿@page "/account/family/join"
+
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using WMP.Models
+@using WMP.Data
+@layout IdentityLayout
+
+@attribute [Authorize]
+
+@inject AuthenticationStateProvider AuthStateProvider
+@inject UserManager<ApplicationUser> UserManager
+@inject IDbContextFactory<WMPContext> DbContextFactory
+@inject NavigationManager NavigationManager
+
+@rendermode InteractiveServer
+
+<div class="form-container">
+    <h2 style="text-align: center; margin: 0.5rem;">Join Family</h2>
+    
+    <div class="input-container">
+        <label>Insert family invite code</label>
+        <InputText type="text" placeholder="Insert code" @bind-Value="code"></InputText>
+    </div>
+    
+    <button @onclick="SubmitButton">Join family</button>
+    
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <p style="color: red;">@errorMessage</p>
+    }
+    
+</div>
+
+@code {
+
+    [SupplyParameterFromQuery(Name = "code")]
+    public string code { get; set; } = string.Empty;
+    
+    string errorMessage = string.Empty;
+
+    private async Task SubmitButton()
+    {
+        var state = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = await UserManager.GetUserAsync(state.User);
+
+        if (user != null)
+        {
+            using (var context = DbContextFactory.CreateDbContext())
+            {
+                Family? family = await context.Families.FirstOrDefaultAsync(x => x.InviteCode.ToString() == code);
+
+                if (family != null)
+                {
+                    user.FamilyId = family.Id;
+                    
+                    context.Update(user);
+                    await context.SaveChangesAsync();
+                    NavigationManager.NavigateTo("/");
+                }
+                else
+                {
+                    errorMessage = "Family not found";
+                }
+            }
+        }
+    }
+}

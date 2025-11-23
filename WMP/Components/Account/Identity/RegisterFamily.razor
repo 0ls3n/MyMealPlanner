@@ -1,0 +1,30 @@
+﻿@page "/account/family"
+@using Microsoft.AspNetCore.Authorization
+@rendermode InteractiveServer
+@layout IdentityLayout
+
+@attribute [Authorize]
+
+@inject NavigationManager NavigationManager
+
+<div class="form-container">
+    <h2 style="text-align: center; margin: 0.5rem;">Create or join existing family</h2>
+    
+    <div class="family-register-grid">
+        <button class="family-register-button" @onclick="() => NavigationManager.NavigateTo(createPath)">
+            <img src="Icons/icon-family-plus.svg" width="50" height="50"/>
+            <p style="margin: 0">Register new family</p>
+        </button>
+        <button class="family-register-button" @onclick="() => NavigationManager.NavigateTo(joinPath)">
+            <img src="Icons/icon-family-arrow.svg" width="50" height="50"/>
+            <p style="margin: 0">Join existing family</p>
+        </button>
+    </div>
+    
+    
+</div>
+
+@code {
+    private string createPath = "/account/family/create";
+    private string joinPath = "/account/family/join";
+}

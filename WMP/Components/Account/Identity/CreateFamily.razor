@@ -1,0 +1,65 @@
+﻿@page "/account/family/create"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using WMP.Data
+@using WMP.Models
+@rendermode InteractiveServer
+@layout IdentityLayout
+
+@attribute [Authorize]
+
+@inject IDbContextFactory<WMPContext> DbContextFactory
+@inject AuthenticationStateProvider AuthStateProvider
+@inject UserManager<ApplicationUser> UserManager
+@inject NavigationManager NavigationManager
+
+<div class="form-container">
+    <h2 style="text-align: center; margin: 0.5rem;">Create Family</h2>
+    
+    <EditForm Model="Model" FormName="CreateFamilyForm" OnValidSubmit="OnSubmit">
+        <DataAnnotationsValidator></DataAnnotationsValidator>
+        
+        <div class="input-container">
+            <label>Family name:</label>
+            <InputText type="text" @bind-Value="Model.Name" placeholder="Enter family name"></InputText>
+        </div>
+        
+        @* <div class="input-container"> *@
+        @*     <label>Invite family members:</label> *@
+        @*      *@
+        @* </div> *@
+        
+        <button type="submit">Create family</button>
+    </EditForm>
+    
+    
+</div>
+
+@code {
+    public Family Model { get; set; } = new();
+
+    private async Task OnSubmit()
+    {
+        var state = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = await UserManager.GetUserAsync(state.User);
+
+        if (user != null)
+        {
+            using (var context = DbContextFactory.CreateDbContext())
+            {
+                await context.AddAsync(Model);
+                await context.SaveChangesAsync();
+
+                user.FamilyId = Model.Id;
+
+                context.Update(user);
+                await context.SaveChangesAsync();
+            }
+        }
+        
+        NavigationManager.NavigateTo("/");
+
+    }
+}

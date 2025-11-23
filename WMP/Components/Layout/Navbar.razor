@@ -1,0 +1,89 @@
+@using Microsoft.AspNetCore.Components.Authorization
+@rendermode InteractiveServer
+
+@inject NavigationManager NavigationManager
+
+<nav class="navbar">
+    <div class="navbar-header">
+        <a href="/" class="navbar-header-logo">
+            <img src="Icons/icon-logo.svg" width="40" height="40"/>
+            <span>MyMealPlanner</span>
+        </a>
+    </div>
+    <div class="navbar-content">
+        <div class="nav-item">
+            <NavLink Match="NavLinkMatch.All" ActiveClass="active" href="/">Calendar</NavLink>
+        </div>
+        <div class="nav-item">
+            <NavLink href="/recipes">Explore recipes</NavLink>
+        </div>
+        <AuthorizeView>
+            <Authorized>
+                <div class="nav-item">
+                    <NavLink href="/shopping-list">Shopping list</NavLink>
+                </div>
+                <div class="nav-item">
+                    <NavLink href="/settings">Settings</NavLink>
+                </div>
+            </Authorized>
+        </AuthorizeView>
+    </div>
+    <div class="navbar-profile">
+        <AuthorizeView>
+            <NotAuthorized>
+                <div class="navbar-profile-links">
+                    <div class="nav-item">
+                        <NavLink Match="NavLinkMatch.All" href="/account/login">Login</NavLink>
+                    </div>
+                    <div class="nav-item">
+                        <NavLink href="/account/register">Register</NavLink>
+                    </div>
+                </div>
+            </NotAuthorized>
+            <Authorized>
+                @* Make some UI for the profile picture and such *@
+                <div class="navbar-profile-links">
+                    <span>@friendlyNameMethod(context.User.Identity?.Name)</span>
+                    
+                    <form action="Account/Logout" method="post">
+                        <AntiforgeryToken/>
+                        <input type="hidden" name="ReturnUrl" value="@currentUrl"/>
+                        <button style="margin: 0; height: fit-content; background: none; border: none; cursor: pointer; display: flex;">
+                            <img src="Icons/icon-signout.svg" width="20" height="20"/>
+                        </button>
+                    </form>
+                </div>
+            </Authorized>
+        </AuthorizeView>
+    </div>
+</nav>
+
+@code {
+
+    private string friendlyNameMethod(string name)
+    {
+        string result = name.Replace("_", " ");
+
+        return result;
+    }
+    
+    private string? currentUrl;
+
+    protected override void OnInitialized()
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        NavigationManager.LocationChanged += OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
+    }
+
+}

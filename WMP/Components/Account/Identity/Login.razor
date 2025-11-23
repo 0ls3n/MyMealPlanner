@@ -1,0 +1,126 @@
+﻿@page "/account/login"
+@using System.Net
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Mvc
+@using WMP.Account.Models
+@using WMP.Data
+
+
+@layout IdentityLayout
+@inject UserManager<ApplicationUser> UserManager
+@inject NavigationManager NavigationManager
+@inject SignInManager<ApplicationUser> SignInManager
+@inject AuthenticationStateProvider AuthStateProvider
+
+
+<div class="form-container">
+    <h2 style="text-align: center; margin: 0.5rem;">Login</h2>
+
+    <EditForm Model="SignInModel" FormName="RegisterForm" OnValidSubmit="LoginUser">
+        <DataAnnotationsValidator></DataAnnotationsValidator>
+        <div class="input-container">
+            <label>Email:</label>
+            <InputText type="text" placeholder="Enter email" @bind-Value="SignInModel.Email"></InputText>
+        </div>
+        <div class="input-container">
+            <label>Password:</label>
+            <InputText type="password" placeholder="Enter password" @bind-Value="SignInModel.Password"></InputText>
+        </div>
+        <div class="input-container">
+            <label>Stay signed in:</label>
+            <InputCheckbox type="password" @bind-Value="SignInModel.StaySignedIn"></InputCheckbox>
+        </div>
+        
+        
+
+        <ValidationSummary></ValidationSummary>
+
+        <button type="submit">
+            @if (!isProcessing)
+            {
+                <span>Login</span>
+            }
+            else
+            {
+                <div class="loader"></div>
+            }
+        </button>
+    </EditForm>
+    
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <span style="color: red; text-align: center;">@errorMessage</span>
+    }
+
+    <span style="text-align: center; margin: 0.5rem;">Don't have an account? <a href="/account/register" style="color: var(--primary-color)">Register</a></span>
+    
+</div>
+
+
+@code {
+    [SupplyParameterFromForm] public SignInDTO SignInModel { get; set; } = new SignInDTO();
+
+    [SupplyParameterFromQuery] public string ReturnUrl { get; set; }
+    
+    [CascadingParameter] private HttpContext HttpContext { get; set; } = default!;
+
+    private bool staySignedIn { get; set; }
+
+    private string errorMessage = string.Empty;
+
+    bool isProcessing = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (HttpMethods.IsGet(HttpContext.Request.Method))
+        {
+            // Clear the existing external cookie to ensure a clean login process
+            await HttpContext.SignOutAsync(IdentityConstants.ApplicationScheme);
+        }
+    }
+
+    private async Task LoginUser()
+    {
+        if (isProcessing)
+        {
+            return;
+        }
+        isProcessing = true;
+        StateHasChanged();
+
+        var user = await UserManager.FindByEmailAsync(SignInModel.Email);
+
+        if (user is not null)
+        {
+            var signInResult = await SignInManager.PasswordSignInAsync(user, SignInModel.Password, SignInModel.StaySignedIn, true);
+
+            if (signInResult.Succeeded)
+            {
+                if (user.FamilyId == null)
+                {
+                    NavigationManager.NavigateTo("/account/family");
+                }
+                else
+                {
+                    NavigationManager.NavigateTo("/");
+                }
+            }
+            else
+            {
+                isProcessing = false;
+                StateHasChanged();
+                errorMessage = "Invalid login";
+            }
+        }
+        else
+        {
+            isProcessing = false;
+            StateHasChanged();
+            errorMessage = "Invalid login";
+        }
+    }
+
+}

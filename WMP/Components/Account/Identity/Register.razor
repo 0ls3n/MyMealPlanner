@@ -1,0 +1,69 @@
+﻿@page "/account/register"
+@using Microsoft.AspNetCore.Identity
+@using WMP.Account.Models
+@using WMP.Data
+
+@rendermode InteractiveServer
+
+@layout IdentityLayout
+@inject UserManager<ApplicationUser> UserManager
+@inject NavigationManager NavigationManager
+
+<div class="form-container">
+    
+    <h2 style="text-align: center; margin: 0.5rem;">Register</h2>
+    
+    <EditForm Model="RegisterModel" FormName="RegisterForm" OnValidSubmit="RegisterUser">
+        <DataAnnotationsValidator></DataAnnotationsValidator>
+        <div class="input-container">
+            <label>Email:</label>
+            <InputText type="text" placeholder="Enter Email" @bind-Value="RegisterModel.Email"></InputText>
+        </div>
+        <div class="input-container">
+            <label>Username:</label>
+            <InputText type="text" placeholder="Enter Username" @bind-Value="RegisterModel.Username"></InputText>
+        </div>
+        <div class="input-container">
+            <label>Password:</label>
+            <InputText type="password" placeholder="Enter Password" @bind-Value="RegisterModel.Password"></InputText>
+        </div>
+        <div class="input-container">
+            <label>Confirm Password:</label>
+            <InputText type="password" placeholder="Enter Confirm Password" @bind-Value="RegisterModel.ConfirmPassword"></InputText>
+        </div>
+
+        <ValidationSummary></ValidationSummary>
+
+        <button type="submit" style="margin-top: 0.5rem;">Register</button>
+    </EditForm>
+    <span style="text-align: center; margin: 0.5rem;">Already have an account? <a href="/account/login" style="color: var(--primary-color)">Login</a></span>
+</div>
+
+@code {
+    
+    public RegisterDTO RegisterModel { get; set; } = new RegisterDTO();
+
+    private async Task RegisterUser()
+    {
+        ApplicationUser user = new ApplicationUser()
+        {
+            Email = RegisterModel.Email,
+            UserName = RegisterModel.Username.Replace(" ", "_"),
+            NormalizedEmail = RegisterModel.Email.ToUpper(),
+            NormalizedUserName = RegisterModel.Username.Replace(" ", "_").ToUpper()
+        };
+
+        var result = await UserManager.CreateAsync(user);
+
+        if (result.Succeeded)
+        {
+            var passwordResult = await UserManager.AddPasswordAsync(user, RegisterModel.Password);
+
+            if (passwordResult.Succeeded)
+            {
+                NavigationManager.NavigateTo("/", true);
+            }
+        }
+    }
+
+}

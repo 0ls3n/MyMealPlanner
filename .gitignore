@@ -1,0 +1,51 @@
+### .NET build ###
+bin/
+obj/
+out/
+[Bb]uild/
+[Ll]og/
+/packages/
+*.user
+*.suo
+
+### Rider / IntelliJ ###
+.idea/
+.idea/**
+*.iml
+*.ipr
+*.iws
+.idea_modules/
+
+### Rider workspace files ###
+# These get recreated by Rider anyway
+.idea/.idea.*
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/usage.statistics.xml
+.idea/dictionaries
+.idea/httpRequests/
+.idea/caches/
+.idea/modules.xml
+.idea/assetWizardSettings.xml
+.idea/dataSources.xml
+.idea/dataSources.local.xml
+.idea/sqlDataSources.xml
+.idea/datasources.xml
+.idea/datasources.local.xml
+
+### ReSharper ###
+_ReSharper.Caches/
+*.[Rr]e[Ss]harper
+
+### OS ignores ###
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+*~
+.cache/
