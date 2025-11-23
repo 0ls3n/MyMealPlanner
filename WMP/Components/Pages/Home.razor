@@ -65,7 +65,14 @@
                             <span class="day-number">@day.Day</span>
                             @foreach (var mealDate in MealDateRecipes.Where(x => x.Date.Year == day.Year && x.Date.Month == day.Month && x.Date.Day == day.Day))
                             {
-                                <span class="day-content">@mealDate.Recipe.Name</span>
+                                @if (mealDate.Recipe.Name.Length >= 15)
+                                {
+                                    <span class="day-content">@($"{mealDate.Recipe.Name.Substring(0, 15)}...")</span>
+                                }
+                                else
+                                {
+                                    <span class="day-content">@mealDate.Recipe.Name</span>
+                                }
                             }
                         </div>
                     }
@@ -93,11 +100,11 @@
 
         <div class="modal-selector">
             <span class="@(modalEditMode == ModalEditMode.Assigned ? "selected" : "")"
-                  @onclick="() => modalEditMode = ModalEditMode.Assigned">Assigned (@currentMealDateRecipes.Count)</span>
+                  @onclick="() => modalEditMode = ModalEditMode.Assigned">Assigned Recipes (@currentMealDateRecipes.Count)</span>
             <span class="@(modalEditMode == ModalEditMode.Select ? "selected" : "")"
                   @onclick="() => modalEditMode = ModalEditMode.Select">Select Recipe</span>
             <span class="@(modalEditMode == ModalEditMode.Create ? "selected" : "")"
-                  @onclick="() => modalEditMode = ModalEditMode.Create">Create New</span>
+                  @onclick="() => modalEditMode = ModalEditMode.Create">Create Recipe</span>
         </div>
 
         <div class="modal-content">
@@ -108,16 +115,23 @@
                         @if (currentMealDateRecipes.Count > 0)
                         {
                             <div class="modal-recipe-list" style="text-align: left !important;">
-                                @foreach (var recipe in currentMealDateRecipes.Select(x => Helpers.RecipeDTOConverionHelper.ConverDbRecipe(x.Recipe)))
+                                @foreach (var item in currentMealDateRecipes
+                                                  .Select(x => new
+                                                  {
+                                                      MealDateRecipe = x,
+                                                      Recipe = Helpers.RecipeDTOConverionHelper.ConverDbRecipe(x.Recipe)
+                                                  }))
                                 {
+                                    var recipe = item.Recipe;
                                     <div class="modal-recipe-item">
                                         <img src="@recipe.ThumbnailUrl"/>
                                         <div>
                                             <div class="modal-recipe-header">
                                                 <h4>@recipe.Name</h4>
                                                 <button class="btn btn-primary"
+                                                        @onclick="() => RemoveMealDate(item.MealDateRecipe)"
                                                         style="display: flex; gap: 0.5rem; align-items: center;">
-                                                    <img src="Icons/icon-cross.svg"
+                                                    <img src="Icons/icon-trash.svg"
                                                          style="width: 20px !important; height: 20px !important;"/>
                                                     <span>Remove</span>
                                                 </button>
@@ -125,7 +139,8 @@
 
                                             @if (recipe.Source != null)
                                             {
-                                                <a href="@recipe.Source" target="_blank" style="margin-top: 0;">Source</a>
+                                                <a href="@recipe.Source" target="_blank"
+                                                   style="margin-top: 0;">Source</a>
                                             }
 
                                             <p>@($"{recipe.Ingredients.Count} Ingredients") </p>
@@ -137,6 +152,21 @@
                         else
                         {
                             <p style="margin-bottom: 2rem; opacity: 0.5;">No recipes assigned to this date.</p>
+
+                            <form class="modal-dish-name-input-container">
+                                    <input class="modal-dish-name-input" placeholder="What would you like to eat?"
+                                           type="text"
+                                           @bind="dishNameQuery"/>
+                               
+                                    <button type="submit" class="btn btn-primary" style="display: flex; gap: 0.5rem; align-items: center;">
+                                        <img src="Icons/icon-plus.svg"
+                                             style="width: 20px !important; height: 20px !important;"/>
+                                        <span>Add</span>
+                                    </button>
+                            </form>
+
+                            <p style="opacity: 0.5; font-size: 12px;">Or</p>
+
                             <button class="btn btn-secondary" @onclick="() => modalEditMode = ModalEditMode.Select">
                                 Select
                                 Existing Recipe
@@ -224,6 +254,7 @@
     bool showEditDateModal = false;
 
     string recipeSearchQuery = string.Empty;
+    string dishNameQuery = string.Empty;
 
     public List<RecipeDTO> Recipes = new List<RecipeDTO>();
 
@@ -340,7 +371,7 @@
         MealDateRecipe dateRecipe = await RecipeService.AddRecipeToDate(recipeResult, date, User.FamilyId.Value);
 
         await getData();
-        
+
         currentMealDateRecipes = MealDateRecipes.Where(x => x.Date.Year == date.Year && x.Date.Month == date.Month && x.Date.Day == date.Day).ToList();
         StateHasChanged();
     }
@@ -350,7 +381,7 @@
         await RecipeService.RemoveMealDateRecipe(mealDateRecipe);
 
         await getData();
-        currentMealDateRecipes =MealDateRecipes.Where(x => x.Date.Year == SelectedDate.Value.Year && x.Date.Month == SelectedDate.Value.Month && x.Date.Day == SelectedDate.Value.Day).ToList();
+        currentMealDateRecipes = MealDateRecipes.Where(x => x.Date.Year == SelectedDate.Value.Year && x.Date.Month == SelectedDate.Value.Month && x.Date.Day == SelectedDate.Value.Day).ToList();
     }
 
 }

@@ -11,8 +11,8 @@ using WMP.Data;
 namespace WMP.Migrations
 {
     [DbContext(typeof(WMPContext))]
-    [Migration("20251123101431_AddedDateRecipeLinkingTable")]
-    partial class AddedDateRecipeLinkingTable
+    [Migration("20251123175321_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -207,6 +207,8 @@ namespace WMP.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("FamilyId");
+
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
 
@@ -233,24 +235,6 @@ namespace WMP.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Families");
-                });
-
-            modelBuilder.Entity("WMP.Models.Ingredient", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Ingredients");
                 });
 
             modelBuilder.Entity("WMP.Models.MealDateRecipe", b =>
@@ -287,14 +271,23 @@ namespace WMP.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<DateTime>("Date")
+                    b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("Description")
+                        .HasColumnType("longtext");
+
+                    b.Property<int?>("MealDbId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("Name")
+                    b.Property<string>("Source")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("ThumbnailUrl")
                         .IsRequired()
                         .HasColumnType("longtext");
 
@@ -309,15 +302,18 @@ namespace WMP.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<int>("IngredientId")
-                        .HasColumnType("int");
+                    b.Property<string>("Measure")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<int>("RecipeId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("IngredientId");
 
                     b.HasIndex("RecipeId");
 
@@ -375,6 +371,15 @@ namespace WMP.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("WMP.Data.ApplicationUser", b =>
+                {
+                    b.HasOne("WMP.Models.Family", "Family")
+                        .WithMany()
+                        .HasForeignKey("FamilyId");
+
+                    b.Navigation("Family");
+                });
+
             modelBuilder.Entity("WMP.Models.MealDateRecipe", b =>
                 {
                     b.HasOne("WMP.Models.Family", "Family")
@@ -396,21 +401,18 @@ namespace WMP.Migrations
 
             modelBuilder.Entity("WMP.Models.RecipeIngredient", b =>
                 {
-                    b.HasOne("WMP.Models.Ingredient", "Ingredient")
-                        .WithMany()
-                        .HasForeignKey("IngredientId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("WMP.Models.Recipe", "Recipe")
-                        .WithMany()
+                        .WithMany("Ingredients")
                         .HasForeignKey("RecipeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Ingredient");
-
                     b.Navigation("Recipe");
+                });
+
+            modelBuilder.Entity("WMP.Models.Recipe", b =>
+                {
+                    b.Navigation("Ingredients");
                 });
 #pragma warning restore 612, 618
         }
