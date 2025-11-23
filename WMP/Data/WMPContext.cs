@@ -10,6 +10,7 @@ public class WMPContext : IdentityDbContext<ApplicationUser>
     public DbSet<Ingredient> Ingredients { get; set; }
     public DbSet<Recipe> Recipes { get; set; }
     public DbSet<RecipeIngredient> RecipeIngredients { get; set; }
+    public DbSet<MealDateRecipe> MealDateRecipes { get; set; }
     
     public WMPContext(DbContextOptions<WMPContext> options) : base(options)
     {

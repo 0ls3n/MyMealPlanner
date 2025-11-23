@@ -2,6 +2,7 @@
 @using System.Globalization
 @using Microsoft.AspNetCore.Authorization
 @using WMP.Models
+@using WMP.Models.Data_Transfer_Objects
 @using WMP.Services
 @attribute [Authorize]
 @rendermode InteractiveServer
@@ -245,6 +246,11 @@
             Recipes = response.Meals;
         
         StateHasChanged();
+    }
+
+    async Task AddRecipeToDate(DateTime date, RecipeDTO recipe)
+    {
+        
     }
 
 }

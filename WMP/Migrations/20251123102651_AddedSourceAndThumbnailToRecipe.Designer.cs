@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WMP.Data;
 
@@ -10,9 +11,11 @@ using WMP.Data;
 namespace WMP.Migrations
 {
     [DbContext(typeof(WMPContext))]
-    partial class WMPContextModelSnapshot : ModelSnapshot
+    [Migration("20251123102651_AddedSourceAndThumbnailToRecipe")]
+    partial class AddedSourceAndThumbnailToRecipe
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
