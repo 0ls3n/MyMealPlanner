@@ -3,6 +3,7 @@
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
 @using Mono.TextTemplating
 @using WMP.Data
 @using WMP.Models
@@ -15,6 +16,7 @@
 @inject UserManager<ApplicationUser> UserManager
 @inject IMealDbService MealDbService
 @inject IRecipeService RecipeService
+@inject IDbContextFactory<WMPContext> Context
 
 <PageTitle>Home</PageTitle>
 
@@ -65,13 +67,29 @@
                             <span class="day-number">@day.Day</span>
                             @foreach (var mealDate in MealDateRecipes.Where(x => x.Date.Year == day.Year && x.Date.Month == day.Month && x.Date.Day == day.Day))
                             {
-                                @if (mealDate.Recipe.Name.Length >= 15)
+                                if (mealDate.Recipe != null)
                                 {
-                                    <span class="day-content">@($"{mealDate.Recipe.Name.Substring(0, 15)}...")</span>
+                                    @if (mealDate.Recipe.Name.Length >= 15)
+                                    {
+                                        <span
+                                            class="day-content">@($"{mealDate.Recipe.Name.Substring(0, 15)}...")</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="day-content">@mealDate.Recipe.Name</span>
+                                    }
                                 }
                                 else
                                 {
-                                    <span class="day-content">@mealDate.Recipe.Name</span>
+                                    @if (mealDate.Name.Length >= 15)
+                                    {
+                                        <span
+                                            class="day-content">@($"{mealDate.Name.Substring(0, 15)}...")</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="day-content">@mealDate.Name</span>
+                                    }
                                 }
                             }
                         </div>
@@ -93,7 +111,7 @@
                 }
             </div>
             <button style="border: none; background: none; display: flex; cursor:pointer;"
-                    @onclick="() => { showEditDateModal = false; modalEditMode = ModalEditMode.Assigned; recipeSearchQuery = string.Empty; StateHasChanged(); }">
+                    @onclick="() => { showEditDateModal = false; modalEditMode = ModalEditMode.Assigned; recipeSearchQuery = string.Empty; dishNameQuery = string.Empty; StateHasChanged(); }">
                 <img src="Icons/icon-cross.svg" width="35" height="35"/>
             </button>
         </div>
@@ -119,33 +137,54 @@
                                                   .Select(x => new
                                                   {
                                                       MealDateRecipe = x,
-                                                      Recipe = Helpers.RecipeDTOConverionHelper.ConverDbRecipe(x.Recipe)
+                                                      Recipe = x.Recipe == null ? null : Helpers.RecipeDTOConverionHelper.ConverDbRecipe(x.Recipe)
                                                   }))
                                 {
-                                    var recipe = item.Recipe;
-                                    <div class="modal-recipe-item">
-                                        <img src="@recipe.ThumbnailUrl"/>
-                                        <div>
-                                            <div class="modal-recipe-header">
-                                                <h4>@recipe.Name</h4>
-                                                <button class="btn btn-primary"
-                                                        @onclick="() => RemoveMealDate(item.MealDateRecipe)"
-                                                        style="display: flex; gap: 0.5rem; align-items: center;">
-                                                    <img src="Icons/icon-trash.svg"
-                                                         style="width: 20px !important; height: 20px !important;"/>
-                                                    <span>Remove</span>
-                                                </button>
+                                    if (item.Recipe != null)
+                                    {
+                                        var recipe = item.Recipe;
+                                        <div class="modal-recipe-item">
+                                            <img src="@recipe.ThumbnailUrl"/>
+                                            <div>
+                                                <div class="modal-recipe-header">
+                                                    <h4>@recipe.Name</h4>
+                                                    <button class="btn btn-primary"
+                                                            @onclick="() => RemoveMealDate(item.MealDateRecipe)"
+                                                            style="display: flex; gap: 0.5rem; align-items: center;">
+                                                        <img src="Icons/icon-trash.svg"
+                                                             style="width: 20px !important; height: 20px !important;"/>
+                                                        <span>Remove</span>
+                                                    </button>
+                                                </div>
+
+                                                @if (recipe.Source != null)
+                                                {
+                                                    <a href="@recipe.Source" target="_blank"
+                                                       style="margin-top: 0;">Source</a>
+                                                }
+
+                                                <p>@($"{recipe.Ingredients.Count} Ingredients") </p>
                                             </div>
-
-                                            @if (recipe.Source != null)
-                                            {
-                                                <a href="@recipe.Source" target="_blank"
-                                                   style="margin-top: 0;">Source</a>
-                                            }
-
-                                            <p>@($"{recipe.Ingredients.Count} Ingredients") </p>
                                         </div>
-                                    </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="modal-recipe-item">
+                                            <div></div>
+                                            <div>
+                                                <div class="modal-recipe-header">
+                                                    <h4>@item.MealDateRecipe.Name</h4>
+                                                    <button class="btn btn-primary"
+                                                            @onclick="() => RemoveMealDate(item.MealDateRecipe)"
+                                                            style="display: flex; gap: 0.5rem; align-items: center;">
+                                                        <img src="Icons/icon-trash.svg"
+                                                             style="width: 20px !important; height: 20px !important;"/>
+                                                        <span>Remove</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
                                 }
                             </div>
                         }
@@ -153,7 +192,7 @@
                         {
                             <p style="margin-bottom: 2rem; opacity: 0.5;">No recipes assigned to this date.</p>
 
-                            <form class="modal-dish-name-input-container">
+                            <form class="modal-dish-name-input-container" @onsubmit="() => AddMealQueryAsMealDateRecipe(SelectedDate.Value, dishNameQuery)">
                                     <input class="modal-dish-name-input" placeholder="What would you like to eat?"
                                            type="text"
                                            @bind="dishNameQuery"/>
@@ -237,6 +276,7 @@
 
 @code {
     public ApplicationUser? User { get; set; }
+    public Family? CurrentFamily { get; set; }
 
     bool isLoading = false;
 
@@ -295,6 +335,11 @@
         var userClaims = authState.User;
 
         User = await UserManager.GetUserAsync(userClaims);
+
+        using (var context = Context.CreateDbContext())
+        {
+            CurrentFamily = await context.Families.Where(x => x.Id == User.FamilyId.Value).Include(x => x.Users).FirstOrDefaultAsync();
+        }
 
         MealDateRecipes = await RecipeService.GetMealDateRecipes(User.FamilyId.Value);
     }
@@ -383,5 +428,15 @@
         await getData();
         currentMealDateRecipes = MealDateRecipes.Where(x => x.Date.Year == SelectedDate.Value.Year && x.Date.Month == SelectedDate.Value.Month && x.Date.Day == SelectedDate.Value.Day).ToList();
     }
+
+    async Task AddMealQueryAsMealDateRecipe(DateTime date, string name)
+    {
+        MealDateRecipe dateRecipe = await RecipeService.AddSimpleMealToDate(name, date, User.FamilyId.Value);
+
+        await getData();
+        currentMealDateRecipes = MealDateRecipes.Where(x => x.Date.Year == date.Year && x.Date.Month == date.Month && x.Date.Day == date.Day).ToList();
+        StateHasChanged();
+    }
+    
 
 }

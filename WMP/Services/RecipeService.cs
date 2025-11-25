@@ -101,4 +101,22 @@ public class RecipeService : IRecipeService
             await context.SaveChangesAsync();
         }
     }
+
+    public async Task<MealDateRecipe> AddSimpleMealToDate(string mealName, DateTime date, int familyId)
+    {
+        MealDateRecipe mealDateRecipe = new MealDateRecipe()
+        {
+            Date = date,
+            FamilyId = familyId,
+            Name = mealName,
+        };
+        
+        using (var context = _dbContextFactory.CreateDbContext())
+        {
+            await context.AddAsync(mealDateRecipe);
+            await context.SaveChangesAsync();
+        }
+
+        return mealDateRecipe;
+    }
 }

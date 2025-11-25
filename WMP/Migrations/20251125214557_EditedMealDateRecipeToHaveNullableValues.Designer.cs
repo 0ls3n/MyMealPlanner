@@ -11,8 +11,8 @@ using WMP.Data;
 namespace WMP.Migrations
 {
     [DbContext(typeof(WMPContext))]
-    [Migration("20251123175321_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20251125214557_EditedMealDateRecipeToHaveNullableValues")]
+    partial class EditedMealDateRecipeToHaveNullableValues
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -249,7 +249,10 @@ namespace WMP.Migrations
                     b.Property<int>("FamilyId")
                         .HasColumnType("int");
 
-                    b.Property<int>("RecipeId")
+                    b.Property<string>("Name")
+                        .HasColumnType("longtext");
+
+                    b.Property<int?>("RecipeId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -390,9 +393,7 @@ namespace WMP.Migrations
 
                     b.HasOne("WMP.Models.Recipe", "Recipe")
                         .WithMany()
-                        .HasForeignKey("RecipeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("RecipeId");
 
                     b.Navigation("Family");
 

@@ -7,6 +7,7 @@ public interface IRecipeService
 {
     public Task<Recipe> AddRecipe(RecipeDTO recipe);
     public Task<MealDateRecipe> AddRecipeToDate(Recipe recipe, DateTime date, int familyId);
+    public Task<MealDateRecipe> AddSimpleMealToDate(string mealName, DateTime date, int familyId);
     
     public Task<List<MealDateRecipe>> GetMealDateRecipes(int familyId);
     public Task RemoveMealDateRecipe(MealDateRecipe mealDateRecipe);
