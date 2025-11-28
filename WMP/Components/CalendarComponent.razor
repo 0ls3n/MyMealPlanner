@@ -1,0 +1,482 @@
+@using System.Globalization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using WMP.Data
+@using WMP.Models
+@using WMP.Models.Data_Transfer_Objects
+@using WMP.Services
+
+@rendermode InteractiveServer
+
+@inject AuthenticationStateProvider AuthStateProvider
+@inject UserManager<ApplicationUser> UserManager
+@inject IMealDbService MealDbService
+@inject IRecipeService RecipeService
+@inject IDbContextFactory<WMPContext> Context
+
+<div class="calendar">
+    <div class="calendar-header">
+        <button @onclick="PrevMonth" style="background: none; border: none; display: flex; cursor:pointer;">
+            <img src="Icons/icon-calendar-next.svg" width="25" height="25" style="transform: rotate(180deg)"/>
+        </button>
+        <span>@CurrentDate.ToString("MMMM yyyy")</span>
+
+        <button @onclick="NextMonth" style="background: none; border:none; display: flex; cursor: pointer;">
+            <img src="Icons/icon-calendar-next.svg" width="25" height="25"/>
+        </button>
+    </div>
+
+    @if (isLoading)
+    {
+        <span style="color: black;">Loading...</span>
+    }
+    else
+    {
+        <div class="calendar-weekdays">
+            @foreach (var day in DayNames)
+            {
+                <div style="border-bottom: 2px solid rgb(93, 152, 248);">@day</div>
+            }
+        </div>
+
+        <div class="calendar-content">
+
+
+            @foreach (var day in Days)
+            {
+                if (day == DateTime.MinValue)
+                {
+                    <div class="day-empty">
+
+                    </div>
+                }
+                else
+                {
+                    <div class="day @(day == DateTime.Today ? "active" : "")" @onclick="() => SelectDate(day)">
+                        <span class="day-number">@day.Day</span>
+                        @foreach (var mealDate in MealDateRecipes.Where(x => x.Date.Year == day.Year && x.Date.Month == day.Month && x.Date.Day == day.Day))
+                        {
+                            if (mealDate.Recipe != null)
+                            {
+                                @if (mealDate.Recipe.Name.Length >= 15)
+                                {
+                                    <span
+                                        class="day-content">@($"{mealDate.Recipe.Name.Substring(0, 15)}...")</span>
+                                }
+                                else
+                                {
+                                    <span class="day-content">@mealDate.Recipe.Name</span>
+                                }
+                            }
+                            else
+                            {
+                                @if (mealDate.Name.Length >= 15)
+                                {
+                                    <span
+                                        class="day-content">
+                                        @($"{mealDate.Name.Substring(0, 15)}...")
+                                        
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="day-content">@mealDate.Name</span>
+                                }
+                            }
+
+                            @if (mealDate.UserId != null && mealDate.UserId != "-1")
+                            {
+                                <span
+                                    style="font-size: 11px;">@Helpers.FriendlyNameHelper.FriendlyNameMethod(CurrentFamily.Users.Where(x => x.Id == mealDate.UserId).FirstOrDefault().UserName)</span>
+                            }
+                        }
+                    </div>
+                }
+            }
+
+        </div>
+    }
+</div>
+
+
+<div class="modal-container @(showEditDateModal ? "active" : "")">
+    <div class="modal">
+        <div class="header">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <img src="Icons/icon-calendar.svg" width="30" height="30"/>
+                @if (SelectedDate.HasValue)
+                {
+                    <h3>@SelectedDate?.ToString("D")</h3>
+                }
+            </div>
+            <button style="border: none; background: none; display: flex; cursor:pointer;"
+                    @onclick="() => { showEditDateModal = false; modalEditMode = ModalEditMode.Assigned; recipeSearchQuery = string.Empty; dishNameQuery = string.Empty; StateHasChanged(); }">
+                <img src="Icons/icon-cross.svg" width="35" height="35"/>
+            </button>
+        </div>
+
+        <div class="modal-selector">
+            <span class="@(modalEditMode == ModalEditMode.Assigned ? "selected" : "")"
+                  @onclick="() => modalEditMode = ModalEditMode.Assigned">Assigned Recipes (@currentMealDateRecipes.Count)</span>
+            <span class="@(modalEditMode == ModalEditMode.Select ? "selected" : "")"
+                  @onclick="() => modalEditMode = ModalEditMode.Select">Select Recipe</span>
+            <span class="@(modalEditMode == ModalEditMode.Create ? "selected" : "")"
+                  @onclick="() => modalEditMode = ModalEditMode.Create">Create Recipe</span>
+        </div>
+
+        <div class="modal-content">
+            @if (modalEditMode == ModalEditMode.Assigned)
+            {
+                <div style="text-align: center; margin-top: 3rem;">
+                    <div style=" gap: 1rem; width: 100%;">
+                        @if (currentMealDateRecipes.Count > 0)
+                        {
+                            <div class="modal-recipe-list" style="text-align: left !important;">
+                                @foreach (var item in currentMealDateRecipes
+                                                  .Select(x => new
+                                                  {
+                                                      MealDateRecipe = x,
+                                                      Recipe = x.Recipe == null ? null : Helpers.RecipeDTOConverionHelper.ConverDbRecipe(x.Recipe)
+                                                  }))
+                                {
+                                    if (item.Recipe != null)
+                                    {
+                                        var recipe = item.Recipe;
+                                        <div class="modal-recipe-item">
+                                            <img src="@recipe.ThumbnailUrl"/>
+                                            <div>
+                                                <div class="modal-recipe-header">
+                                                    <h4>@recipe.Name</h4>
+                                                    <button class="btn btn-primary"
+                                                            @onclick="() => RemoveMealDate(item.MealDateRecipe)"
+                                                            style="display: flex; gap: 0.5rem; align-items: center;">
+                                                        <img src="Icons/icon-trash.svg"
+                                                             style="width: 20px !important; height: 20px !important;"/>
+                                                        <span>Remove</span>
+                                                    </button>
+                                                </div>
+
+                                                @if (recipe.Source != null)
+                                                {
+                                                    <a href="@recipe.Source" target="_blank"
+                                                       style="margin-top: 0;">Source</a>
+                                                }
+
+                                                <p>@($"{recipe.Ingredients.Count} Ingredients") </p>
+
+                                                <div>
+                                                    <label>Assign family member:</label>
+                                                    <InputSelect @bind-Value="@item.MealDateRecipe.UserId"
+                                                                 @bind-Value:after="() => SaveAssignedFamilyMember(item.MealDateRecipe)">
+                                                        <option value="-1">None</option>
+                                                        @foreach (var user in CurrentFamily.Users)
+                                                        {
+                                                            <option
+                                                                value="@user.Id">@Helpers.FriendlyNameHelper.FriendlyNameMethod(user.UserName)</option>
+                                                        }
+                                                    </InputSelect>
+                                                </div>
+                                            </div>
+
+
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="modal-recipe-item" style="display: block;">
+                                            <div></div>
+                                            <div>
+                                                <div class="modal-recipe-header">
+                                                    <h4>@item.MealDateRecipe.Name</h4>
+                                                    <button class="btn btn-primary"
+                                                            @onclick="() => RemoveMealDate(item.MealDateRecipe)"
+                                                            style="display: flex; gap: 0.5rem; align-items: center;">
+                                                        <img src="Icons/icon-trash.svg"
+                                                             style="width: 20px !important; height: 20px !important;"/>
+                                                        <span>Remove</span>
+                                                    </button>
+                                                </div>
+                                                <div>
+                                                    <label>Assign family member:</label>
+                                                    <InputSelect @bind-Value="@item.MealDateRecipe.UserId"
+                                                                 @bind-Value:after="() => SaveAssignedFamilyMember(item.MealDateRecipe)">
+                                                        <option value="-1">None</option>
+                                                        @foreach (var user in CurrentFamily.Users)
+                                                        {
+                                                            <option
+                                                                value="@user.Id">@Helpers.FriendlyNameHelper.FriendlyNameMethod(user.UserName)</option>
+                                                        }
+                                                    </InputSelect>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <p style="margin-bottom: 2rem; opacity: 0.5;">No recipes assigned to this date.</p>
+
+                            <form class="modal-dish-name-input-container"
+                                  @onsubmit="() => AddMealQueryAsMealDateRecipe(SelectedDate.Value, dishNameQuery)">
+                                <input class="modal-dish-name-input" placeholder="What would you like to eat?"
+                                       type="text"
+                                       @bind="dishNameQuery"/>
+
+                                <button type="submit" class="btn btn-primary"
+                                        style="display: flex; gap: 0.5rem; align-items: center;">
+                                    <img src="Icons/icon-plus.svg"
+                                         style="width: 20px !important; height: 20px !important;"/>
+                                    <span>Add</span>
+                                </button>
+                            </form>
+
+                            <p style="opacity: 0.5; font-size: 12px;">Or</p>
+
+                            <button class="btn btn-secondary" @onclick="() => modalEditMode = ModalEditMode.Select">
+                                Select
+                                Existing Recipe
+                            </button>
+                            <button class="btn btn-primary" @onclick="() => modalEditMode = ModalEditMode.Create">Create
+                                New
+                                Recipe
+                            </button>
+                        }
+                    </div>
+                </div>
+            }
+            else if (modalEditMode == ModalEditMode.Select)
+            {
+                <form @onsubmit="Search" class="modal-recipe-search-container">
+                    <input class="modal-recipe-search" placeholder="Search for a recipe" type="text"
+                           @bind="recipeSearchQuery"/>
+                    <button type="submit" class="btn btn-primary">Search</button>
+                </form>
+                <div class="modal-recipe-list">
+                    @if (Recipes.Count > 0)
+                    {
+                        @foreach (var recipe in Recipes)
+                        {
+                            <div class="modal-recipe-item">
+                                <img src="@recipe.ThumbnailUrl"/>
+                                <div>
+                                    <div class="modal-recipe-header">
+                                        <h4>@recipe.Name</h4>
+                                        <button class="btn btn-primary"
+                                                @onclick="() => AddRecipeToDate(SelectedDate.Value, recipe)"
+                                                style="display: flex; gap: 0.5rem; align-items: center;">
+                                            <img src="Icons/icon-plus.svg"
+                                                 style="width: 20px !important; height: 20px !important;"/>
+                                            <span>Add</span>
+                                        </button>
+                                    </div>
+
+                                    @if (recipe.Source != null)
+                                    {
+                                        <a href="@recipe.Source" target="_blank" style="margin-top: 0;">Source</a>
+                                    }
+
+                                    <p>@($"{recipe.Ingredients.Count} Ingredients") </p>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p style="text-align: center;">There is no recipes...</p>
+
+                        <div style="display: flex; gap: 1rem; justify-content: center;">
+                            <button class="btn btn-primary" @onclick="()=> modalEditMode = ModalEditMode.Create">Create
+                                This Recipe?
+                            </button>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+            }
+        </div>
+
+    </div>
+</div>
+
+@code {
+    public ApplicationUser? User { get; set; }
+    public Family? CurrentFamily { get; set; }
+
+    bool isLoading = true;
+
+    public DateTime CurrentDate { get; set; } = DateTime.Now;
+    public DateTime? SelectedDate { get; set; }
+
+    [PersistentState(AllowUpdates = true, RestoreBehavior = RestoreBehavior.SkipInitialValue)]
+    public string[] DayNames { get; set; }
+
+    public List<DateTime> Days { get; set; } = new();
+
+    bool showEditDateModal = false;
+
+    string recipeSearchQuery = string.Empty;
+    string dishNameQuery = string.Empty;
+
+    public List<RecipeDTO> Recipes = new List<RecipeDTO>();
+
+    [PersistentState(AllowUpdates = true, RestoreBehavior = RestoreBehavior.SkipInitialValue)]
+    public List<MealDateRecipe> MealDateRecipes { get; set; } = new List<MealDateRecipe>();
+
+    List<MealDateRecipe> currentMealDateRecipes = new List<MealDateRecipe>();
+
+    enum ModalEditMode
+    {
+        Assigned,
+        Select,
+        Create
+    }
+
+    ModalEditMode modalEditMode = ModalEditMode.Assigned;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+
+        if (firstRender)
+        {
+            isLoading = true;
+            StateHasChanged();
+
+            DayNames =
+                CultureInfo.CurrentCulture.DateTimeFormat.AbbreviatedDayNames
+                    .Skip(1)
+                    .Concat(CultureInfo.CurrentCulture.DateTimeFormat.AbbreviatedDayNames.Take(1))
+                    .ToArray();
+
+            BuildCalendar();
+
+            await getData();
+
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    async Task getData()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var userClaims = authState.User;
+
+        User = await UserManager.GetUserAsync(userClaims);
+
+        using (var context = Context.CreateDbContext())
+        {
+            CurrentFamily = await context.Families.Where(x => x.Id == User.FamilyId.Value).Include(x => x.Users).FirstOrDefaultAsync();
+        }
+
+        MealDateRecipes = await RecipeService.GetMealDateRecipes(User.FamilyId.Value);
+    }
+
+    void BuildCalendar()
+    {
+        Days.Clear();
+        var firstDay = new DateTime(CurrentDate.Year, CurrentDate.Month, 1);
+        int skip = ((int)firstDay.DayOfWeek + 6) % 7; // Monday = 0
+
+        // Add empty boxes before start of month
+        for (int i = 0; i < skip; i++)
+            Days.Add(DateTime.MinValue);
+
+        // Add actual days of month
+        int daysInMonth = DateTime.DaysInMonth(CurrentDate.Year, CurrentDate.Month);
+        for (int d = 1; d <= daysInMonth; d++)
+            Days.Add(new DateTime(CurrentDate.Year, CurrentDate.Month, d));
+    }
+
+    void PrevMonth()
+    {
+        CurrentDate = CurrentDate.AddMonths(-1);
+        BuildCalendar();
+    }
+
+    void NextMonth()
+    {
+        CurrentDate = CurrentDate.AddMonths(1);
+        BuildCalendar();
+    }
+
+    async Task SelectDate(DateTime date)
+    {
+        Recipes.Clear();
+        SelectedDate = date;
+        showEditDateModal = true;
+
+        MealDbRecipe? recipe = await MealDbService.GetRandomRecipe();
+
+        if (recipe != null)
+        {
+            RecipeDTO recipeDto = Helpers.RecipeDTOConverionHelper.ConvertMealDbDTO(recipe);
+
+            Recipes.Add(recipeDto);
+        }
+
+        currentMealDateRecipes = MealDateRecipes.Where(x => x.Date.Year == date.Year && x.Date.Month == date.Month && x.Date.Day == date.Day).ToList();
+
+        StateHasChanged();
+    }
+
+    async Task Search()
+    {
+        Recipes.Clear();
+
+        MealDbResponse? response = await MealDbService.SearchForRecipes(recipeSearchQuery);
+
+        if (response?.Meals != null)
+        {
+            foreach (var recipe in response.Meals)
+            {
+                Recipes.Add(Helpers.RecipeDTOConverionHelper.ConvertMealDbDTO(recipe));
+            }
+        }
+
+        StateHasChanged();
+    }
+
+    async Task AddRecipeToDate(DateTime date, RecipeDTO recipe)
+    {
+        Recipe recipeResult = await RecipeService.AddRecipe(recipe);
+
+        MealDateRecipe dateRecipe = await RecipeService.AddRecipeToDate(recipeResult, date, User.FamilyId.Value);
+
+        await getData();
+
+        currentMealDateRecipes = MealDateRecipes.Where(x => x.Date.Year == date.Year && x.Date.Month == date.Month && x.Date.Day == date.Day).ToList();
+        StateHasChanged();
+    }
+
+    async Task RemoveMealDate(MealDateRecipe mealDateRecipe)
+    {
+        await RecipeService.RemoveMealDateRecipe(mealDateRecipe);
+
+        await getData();
+        currentMealDateRecipes = MealDateRecipes.Where(x => x.Date.Year == SelectedDate.Value.Year && x.Date.Month == SelectedDate.Value.Month && x.Date.Day == SelectedDate.Value.Day).ToList();
+    }
+
+    async Task AddMealQueryAsMealDateRecipe(DateTime date, string name)
+    {
+        MealDateRecipe dateRecipe = await RecipeService.AddSimpleMealToDate(name, date, User.FamilyId.Value);
+        currentMealDateRecipes = MealDateRecipes.Where(x => x.Date.Year == date.Year && x.Date.Month == date.Month && x.Date.Day == date.Day).ToList();
+
+        await getData();
+        StateHasChanged();
+    }
+
+    async Task SaveAssignedFamilyMember(MealDateRecipe dateRecipe)
+    {
+        await RecipeService.UpdateMealDateRecipe(dateRecipe);
+        currentMealDateRecipes = MealDateRecipes.Where(x => x.Date.Year == SelectedDate.Value.Year && x.Date.Month == SelectedDate.Value.Month && x.Date.Day == SelectedDate.Value.Day).ToList();
+        await getData();
+    }
+
+
+}

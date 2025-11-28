@@ -219,7 +219,7 @@
 }
 
 .day {
-    height: 120px;
+    min-height: 120px;
     border: 2px solid #cdcdcd;
     border-radius: 10px;
     padding: 0.75rem 1rem;
@@ -229,6 +229,7 @@
     display: flex;
     flex-direction: column;
     gap: 1rem;
+    height: auto;
 }
 
 .day-content {
@@ -373,7 +374,7 @@
 
 .modal-recipe-header {
     display: flex;
-    align-items: start;
+    align-items: center;
     justify-content: space-between;
 }
 

@@ -77,6 +77,18 @@ public class RecipeService : IRecipeService
         return dateRecipe;
     }
 
+    public async Task<MealDateRecipe> UpdateMealDateRecipe(MealDateRecipe mealDateRecipe)
+    {
+        using (var context = _dbContextFactory.CreateDbContext())
+        {
+            context.Update(mealDateRecipe);
+
+            await context.SaveChangesAsync();
+        }
+
+        return mealDateRecipe;
+    }
+
     public async Task<List<MealDateRecipe>> GetMealDateRecipes(int familyId)
     {
         List<MealDateRecipe> recipes = new List<MealDateRecipe>();
