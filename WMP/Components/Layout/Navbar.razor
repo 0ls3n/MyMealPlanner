@@ -1,7 +1,10 @@
 @using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Identity
+@using WMP.Data
 @rendermode InteractiveServer
 
 @inject NavigationManager NavigationManager
+@inject UserManager<ApplicationUser> UserManager
 
 <nav class="navbar">
     <div class="navbar-header">
@@ -46,8 +49,12 @@
             <Authorized>
                 @* Make some UI for the profile picture and such *@
                 <div class="navbar-profile-links">
-                    <span>@friendlyNameMethod(context.User.Identity?.Name)</span>
-                    
+                    <div>
+                        <div class="no-image-profile image-profile-lg">
+                            <a href="/account/profile">@Helpers.FriendlyNameHelper.GetNameCredentials(context.User.Identity?.Name)</a>
+                        </div>
+                    </div>
+
                     <form action="Account/Logout" method="post">
                         <AntiforgeryToken/>
                         <input type="hidden" name="ReturnUrl" value="@currentUrl"/>
@@ -63,12 +70,9 @@
 
 @code {
 
-    private string friendlyNameMethod(string name)
-    {
-        string result = name.Replace("_", " ");
+    ApplicationUser? currentUser;
 
-        return result;
-    }
+    bool showProfileDropDown = false;
     
     private string? currentUrl;
 
@@ -88,5 +92,6 @@
     {
         NavigationManager.LocationChanged -= OnLocationChanged;
     }
+    
 
 }

@@ -1,0 +1,59 @@
+@using WMP.Models
+@using WMP.Services
+@rendermode InteractiveServer
+@inject IRecipeService RecipeService
+
+<div class="widget">
+    <div class="widget-header">
+        <img src="Icons/icon-logo.svg" height="30" width="30"/>
+        <span>Today's Meals</span>
+    </div>
+    
+    <div class="widget-today-content">
+        @foreach (var recipe in todayRecipes)
+        {
+            <div class="widget-today-item">
+                <span>@recipe.Recipe?.Name</span>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    
+    [Parameter]
+    public int FamilyId { get; set; }
+
+    bool isLoading = true;
+
+    List<MealDateRecipe> todayRecipes = new List<MealDateRecipe>();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+
+        if (firstRender)
+        {
+            isLoading = true;
+            StateHasChanged();
+
+            await getData();
+            
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    async Task getData()
+    {
+        List<MealDateRecipe> dateRecipes = await RecipeService.GetMealDateRecipes(FamilyId);
+        
+        todayRecipes = dateRecipes
+            .Where(x => x.Date.Year == DateTime.Today.Year && 
+                        x.Date.Month == DateTime.Today.Month && 
+                        x.Date.Day == DateTime.Today.Day).ToList();
+        
+        StateHasChanged();
+    }
+
+}

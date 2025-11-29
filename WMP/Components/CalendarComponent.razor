@@ -87,8 +87,9 @@
 
                             @if (mealDate.UserId != null && mealDate.UserId != "-1")
                             {
-                                <span
-                                    style="font-size: 11px;">@Helpers.FriendlyNameHelper.FriendlyNameMethod(CurrentFamily.Users.Where(x => x.Id == mealDate.UserId).FirstOrDefault().UserName)</span>
+                                <div class="no-image-profile image-profile-sm">
+                                    <a>@Helpers.FriendlyNameHelper.GetNameCredentials(CurrentFamily.Users.Where(x => x.Id == mealDate.UserId).FirstOrDefault().UserName)</a>
+                                </div>
                             }
                         }
                     </div>
@@ -465,17 +466,18 @@
     async Task AddMealQueryAsMealDateRecipe(DateTime date, string name)
     {
         MealDateRecipe dateRecipe = await RecipeService.AddSimpleMealToDate(name, date, User.FamilyId.Value);
-        currentMealDateRecipes = MealDateRecipes.Where(x => x.Date.Year == date.Year && x.Date.Month == date.Month && x.Date.Day == date.Day).ToList();
 
         await getData();
+        currentMealDateRecipes = MealDateRecipes.Where(x => x.Date.Year == date.Year && x.Date.Month == date.Month && x.Date.Day == date.Day).ToList();
         StateHasChanged();
     }
 
     async Task SaveAssignedFamilyMember(MealDateRecipe dateRecipe)
     {
         await RecipeService.UpdateMealDateRecipe(dateRecipe);
-        currentMealDateRecipes = MealDateRecipes.Where(x => x.Date.Year == SelectedDate.Value.Year && x.Date.Month == SelectedDate.Value.Month && x.Date.Day == SelectedDate.Value.Day).ToList();
         await getData();
+        currentMealDateRecipes = MealDateRecipes.Where(x => x.Date.Year == SelectedDate.Value.Year && x.Date.Month == SelectedDate.Value.Month && x.Date.Day == SelectedDate.Value.Day).ToList();
+        StateHasChanged();
     }
 
 

@@ -3,8 +3,27 @@
 
 @attribute [Authorize]
 
-<h3>Home</h3>
+<div class="page">
+    <div class="page-home-header">
+        <h2>Welcome back @Helpers.FriendlyNameHelper.FriendlyNameMethod(Layout.User.UserName)!</h2>
+        <p>@DateTime.Now.ToString("D")</p>
+    </div>
+    
+    <MealsTodayWidget FamilyId="Layout.User.FamilyId!.Value"></MealsTodayWidget>
+    
+    <div class="grid-view">
+        <MealsTodayWidget FamilyId="Layout.User.FamilyId!.Value"></MealsTodayWidget>
+        <MealsTodayWidget FamilyId="Layout.User.FamilyId!.Value"></MealsTodayWidget>
+    </div>
+</div>
 
 @code {
     
+}
+
+@code {
+
+    [CascadingParameter(Name = "Layout")]
+    public MainLayout? Layout { get; set; }
+
 }
