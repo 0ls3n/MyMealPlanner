@@ -1,0 +1,77 @@
+@using WMP.Models
+@using WMP.Services
+@rendermode InteractiveServer
+
+@inject IRecipeService RecipeService
+
+<div class="widget">
+    <div class="widget-header">
+        <img src="Icons/icon-shopping.svg" height="30" width="30"/>
+        <span>Shopping List</span>
+    </div>
+
+    <div class="widget-shopping-content">
+        @foreach (var recipe in todayMealDataRecipes)
+        {
+            
+            @if (recipe.Recipe != null)
+            {
+                <span class="shopping-list-title">@recipe.Recipe.Name</span>
+                
+                foreach (var recipeIngredient in recipe.Recipe.Ingredients)
+                {
+                    <label class="shopping-item">
+                        <input type="checkbox"/>
+                        <span>@recipeIngredient.Name</span>
+                    </label>
+                }
+            }
+            else
+            {
+                <span class="shopping-list-title">@recipe.Name</span>
+                
+                
+            }
+            
+            
+        }
+    </div>
+</div>
+
+@code {
+
+    [Parameter] public int FamilyId { get; set; }
+
+    bool isLoading = true;
+
+    List<MealDateRecipe> todayMealDataRecipes = new List<MealDateRecipe>();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+
+        if (firstRender)
+        {
+            isLoading = true;
+            StateHasChanged();
+
+            await getData();
+
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    async Task getData()
+    {
+        // Make a table for recipes, so you can keep track on the shopping list even though you close it
+        
+        List<MealDateRecipe> recipes = await RecipeService.GetMealDateRecipes(FamilyId);
+
+        todayMealDataRecipes = recipes
+            .Where(x => x.Date.Year == DateTime.Today.Year &&
+                        x.Date.Month == DateTime.Today.Month &&
+                        x.Date.Day == DateTime.Today.Day).ToList();
+    }
+
+}

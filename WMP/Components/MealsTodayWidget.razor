@@ -12,9 +12,18 @@
     <div class="widget-today-content">
         @foreach (var recipe in todayRecipes)
         {
-            <div class="widget-today-item">
-                <span>@recipe.Recipe?.Name</span>
-            </div>
+            if (recipe.Recipe != null)
+            {
+                <div class="widget-today-item">
+                    <span>@recipe.Recipe?.Name</span>
+                </div>
+            }
+            else
+            {
+                <div class="widget-today-item">
+                    <span>@recipe.Name</span>
+                </div>
+            }
         }
     </div>
 </div>

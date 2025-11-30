@@ -1,0 +1,112 @@
+@using Microsoft.EntityFrameworkCore
+@using WMP.Data
+@using WMP.Models
+@using WMP.Services
+@using System.Globalization;
+@rendermode InteractiveServer
+@inject IRecipeService RecipeService
+@inject IDbContextFactory<WMPContext> Context
+
+<div class="widget">
+    <div class="widget-header">
+        <img src="Icons/icon-calendar.svg" height="30" width="30"/>
+        <span>Weekly Overview</span>
+    </div>
+    
+    <div class="widget-date-content">
+        <span>Week: @ISOWeek.GetWeekOfYear(DateTime.Today)</span>
+        @foreach (DateTime day in WeekDays)
+        {
+            <div class="widget-date-item @(day == DateTime.Today ? "active" : "")">
+                <div class="widget-date-item-header">
+                    <span class="day-name">@day.ToString("dddd")</span>
+                    <span class="day-date">@day.ToString("dd/MM")</span>
+                </div>
+
+                @{
+                    List<MealDateRecipe> mealsToday = mealDataRecipes.Where(x => x.Date.Year == day.Year && x.Date.Month == day.Month && x.Date.Day == day.Day).ToList();
+                }
+
+                @if (mealsToday.Count > 0)
+                {
+
+                    @foreach (var mealRecipe in mealsToday)
+                    {
+                        <div class="widget-date-item-content">
+                            <span>@(mealRecipe.Recipe != null ? mealRecipe.Recipe.Name.Length >= 15 ? $"{mealRecipe.Recipe.Name.Substring(0, 15)}..." : mealRecipe.Recipe.Name : mealRecipe.Name.Length >= 15 ? $"{mealRecipe.Name.Substring(0, 15)}..." : mealRecipe.Name)</span>
+                            @if (mealRecipe.UserId != null && mealRecipe.UserId != "-1")
+                            {
+                                <div class="no-image-profile image-profile-sm">
+                                    <a>@Helpers.FriendlyNameHelper.GetNameCredentials(CurrentFamily.Users.Where(x => x.Id == mealRecipe.UserId).FirstOrDefault().UserName)</a>
+                                </div>
+                            }
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="widget-date-item-content">
+                        <span style="opacity: 0.5;">No recipes assigned...</span>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    
+    [Parameter]
+    public int FamilyId { get; set; }
+    
+    public Family CurrentFamily { get; set; }
+    
+    DateTime StartOfWeek { get; set; }
+    List<DateTime> WeekDays { get; set; } = new();
+
+    bool isLoading = true;
+    
+    List<MealDateRecipe> mealDataRecipes = new List<MealDateRecipe>();
+
+    protected override void OnInitialized()
+    {
+        DateTime today = DateTime.Today;
+        
+        int diff = (7 + (today.DayOfWeek - DayOfWeek.Monday)) % 7;
+        StartOfWeek = today.AddDays(-diff);
+        
+        for (int i = 0; i < 7; i++)
+        {
+            WeekDays.Add(StartOfWeek.AddDays(i));
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+
+        if (firstRender)
+        {
+            isLoading = true;
+            StateHasChanged();
+
+            await getData();
+
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    async Task getData()
+    {
+        using (var context = Context.CreateDbContext())
+        {
+            CurrentFamily = await context.Families.Where(x => x.Id == FamilyId).Include(x => x.Users).FirstOrDefaultAsync();
+        }
+        
+        List<MealDateRecipe> recipes = await RecipeService.GetMealDateRecipes(FamilyId);
+
+        mealDataRecipes = recipes;
+    }
+
+}

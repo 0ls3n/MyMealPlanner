@@ -180,6 +180,11 @@
 
 .main-page-layout {
     background-color: var(--primary-color);
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1920' height='350'><g fill='white' opacity='0.5'><ellipse cx='200' cy='220' rx='250' ry='110'/><ellipse cx='450' cy='200' rx='220' ry='100'/><ellipse cx='700' cy='230' rx='260' ry='120'/><ellipse cx='1000' cy='210' rx='240' ry='110'/><ellipse cx='1300' cy='230' rx='260' ry='120'/><ellipse cx='1600' cy='200' rx='240' ry='110'/><ellipse cx='1850' cy='220' rx='200' ry='90'/><ellipse cx='300' cy='140' rx='160' ry='70'/><ellipse cx='600' cy='130' rx='200' ry='90'/><ellipse cx='900' cy='150' rx='180' ry='80'/><ellipse cx='1200' cy='130' rx='200' ry='90'/><ellipse cx='1500' cy='140' rx='180' ry='80'/></g></svg>");
+    background-repeat: no-repeat;
+    background-position: top center;
+    background-position-y: -200px;
+    background-size: 100% auto;
     min-height: 100vh;
     color: white;
     position: relative;
@@ -508,8 +513,6 @@
 
 .widget-today-content {
     margin-top: 2rem;
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
     grid-gap: 1rem;
 }
 
@@ -517,6 +520,63 @@
     border: 1px solid var(--border-color);
     border-radius: 10px;
     padding: 1rem;
+}
+
+.widget-shopping-content {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 0.25rem;
+}
+
+.shopping-item {
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.shopping-list-title {
+    width: 100%;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 0.5rem;
+    margin-top: 1rem;
+}
+
+.widget-date-content {
+    margin-top: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.widget-date-item {
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 1rem;
+    display: grid;
+    grid-template-columns: 1fr 4fr;
+    gap: 1rem;
+    align-items: center;
+}
+
+.widget-date-item.active {
+    border-color: var(--primary-color);
+    background: rgba(52, 121, 230, 0.1);
+    color: black;
+}
+
+.widget-date-item-header {
+    display: flex;
+    gap: 0.25rem;
+    flex-direction: column;
+}
+
+.widget-date-item-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
 }
 
 .grid-view {
