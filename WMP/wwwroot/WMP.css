@@ -537,6 +537,10 @@
     align-items: center;
 }
 
+.shopping-item.active span {
+    text-decoration: line-through;
+}
+
 .shopping-list-title {
     width: 100%;
     border-bottom: 1px solid var(--border-color);
