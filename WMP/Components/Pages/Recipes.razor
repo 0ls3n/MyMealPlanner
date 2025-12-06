@@ -1,8 +1,13 @@
 @page "/recipes"
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize]
-<h3>Recipes</h3>
 
-@code {
+<div class="page">
+    <div class="page-home-header">
+        <h2>All Recipes</h2>
+        <p>Manage your recipe collection</p>
+    </div>
     
-}
+    <ManageRecipesComponent></ManageRecipesComponent>
+    
+</div>

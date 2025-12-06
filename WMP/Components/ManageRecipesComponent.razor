@@ -1,0 +1,157 @@
+@using Mono.TextTemplating
+@using WMP.Models
+@using WMP.Services
+@rendermode InteractiveServer
+
+@inject IRecipeService RecipeService
+
+<div class="manage-recipe-container">
+    <div class="manage-recipe-toolbar">
+        <div class="input-container">
+            <label>Search</label>
+            <input type="text" @bind="searchQuery" @bind:event="oninput"/>
+        </div>
+
+        <div class="input-container">
+            <label>Sort By</label>
+            <InputSelect @bind-Value="currentSortingFilter" TValue="SortingFilter">
+                <option value="@SortingFilter.AToZ">Name (A-Z)</option>
+                <option value="@SortingFilter.ZToA">Name (Z-A)</option>
+                <option value="@SortingFilter.MostMade">Most Made</option>
+                <option value="@SortingFilter.RecentlyMade">Recently Made</option>
+            </InputSelect>
+        </div>
+
+        <div class="input-container">
+            <label>Categories</label>
+
+            <div class="manage-recipe-category-container">
+                <InputRadioGroup @bind-Value="currentCategory">
+                    <label class="manage-recipe-category-item">
+                        <InputRadio Value="RecipeCategories.All"></InputRadio>
+                        All
+                    </label>
+                    <label class="manage-recipe-category-item">
+                        <InputRadio Value="RecipeCategories.Pasta"></InputRadio>
+                        Pasta
+                    </label>
+                    <label class="manage-recipe-category-item">
+                        <InputRadio Value="RecipeCategories.Chicken"></InputRadio>
+                        Chicken
+                    </label>
+                    <label class="manage-recipe-category-item">
+                        <InputRadio Value="RecipeCategories.Vegetarian"></InputRadio>
+                        Vegetarian
+                    </label>
+                    <label class="manage-recipe-category-item">
+                        <InputRadio Value="RecipeCategories.Dessert"></InputRadio>
+                        Dessert
+                    </label>
+                    <label class="manage-recipe-category-item">
+                        <InputRadio Value="RecipeCategories.Breakfast"></InputRadio>
+                        Breakfast
+                    </label>
+                </InputRadioGroup>
+            </div>
+        </div>
+    </div>
+
+    <div class="manage-recipe-content">
+
+        @foreach (Recipe recipe in filteredList(recipes))
+        {
+            <div class="recipe-card">
+                <img src="@recipe.ThumbnailUrl"/>
+
+                <div class="recipe-card-content">
+                    <p>@recipe.Name</p>
+
+                    <div
+                        style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; opacity: 0.5;">
+                        <span>Ingredients: @recipe.Ingredients.Count</span>
+                        <span>Made 0x</span>
+                    </div>
+                </div>
+            </div>
+        }
+
+
+    </div>
+</div>
+
+@code {
+
+    enum SortingFilter
+    {
+        AToZ,
+        ZToA,
+        RecentlyMade,
+        MostMade
+    }
+
+    enum RecipeCategories
+    {
+        All,
+        Pasta,
+        Chicken,
+        Vegetarian,
+        Dessert,
+        Breakfast
+    }
+
+    private bool isLoading = true;
+
+    RecipeCategories currentCategory = RecipeCategories.All;
+
+    SortingFilter currentSortingFilter { get; set; } = SortingFilter.ZToA;
+
+    private string searchQuery = string.Empty;
+
+    private List<Recipe> recipes = new List<Recipe>();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+
+        if (firstRender)
+        {
+            isLoading = true;
+            StateHasChanged();
+
+            await getData();
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task getData()
+    {
+        recipes = await RecipeService.GetRecipes();
+    }
+
+    private List<Recipe> filteredList(List<Recipe> listToFilter)
+    {
+        List<Recipe> filtered = listToFilter.Where(x => x.Name.ToLower().Contains(searchQuery.ToLower())).ToList();
+
+        switch (currentSortingFilter)
+        {
+            case SortingFilter.AToZ:
+                filtered = filtered.OrderBy(x => x.Name).ToList();
+                break;
+            case SortingFilter.ZToA:
+                filtered = filtered.OrderByDescending(x => x.Name).ToList();
+                break;
+            case SortingFilter.MostMade:
+                // Still need some work
+                break;
+                
+            case SortingFilter.RecentlyMade:
+                // Also needs some work
+                break;
+        }
+
+        return filtered;
+    }
+
+
+}

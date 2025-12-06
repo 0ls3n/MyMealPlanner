@@ -131,4 +131,16 @@ public class RecipeService : IRecipeService
 
         return mealDateRecipe;
     }
+
+    public async Task<List<Recipe>> GetRecipes()
+    {
+        List<Recipe> recipes = new List<Recipe>();
+
+        using (var context = _dbContextFactory.CreateDbContext())
+        {
+            recipes = await context.Recipes.Include(x => x.Ingredients).ToListAsync();
+        }
+        
+        return recipes;
+    }
 }
