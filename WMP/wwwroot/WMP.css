@@ -683,3 +683,29 @@
     flex-direction: column;
     justify-content: space-between;
 }
+
+.recipe-info-container {
+    background: white;
+    border-radius: 10px;
+    margin-top: 2rem;
+    padding: 1rem;
+    color: black;
+}
+
+.recipe-info-header {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+
+.recipe-info-header img {
+    object-fit: cover;
+    width: 100%;
+    border-radius: 10px;
+    text-align: right;
+    justify-self: end;
+}
+
+.recipe-info-header h2 {
+    margin-top: 1rem;
+    font-size: 2rem;
+}

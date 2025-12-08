@@ -1,7 +1,59 @@
 @page "/recipes/{id:int}"
 @using Microsoft.AspNetCore.Authorization
+@using WMP.Models
+@using WMP.Services
 @attribute [Authorize]
 
+@rendermode InteractiveServer
+
+@inject IRecipeService RecipeService
+@inject NavigationManager NavigationManager
+
+@if (isLoading)
+{
+    <span>Loading...</span>
+}
+else
+{
+    <div class="page">
+        <div class="recipe-info-container">
+            <div class="recipe-info-header">
+                <div>
+                    <h2>@model.Name</h2>
+                    
+                </div>
+                <img src="@model.ThumbnailUrl"/>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
-    
+    [Parameter] public int Id { get; set; }
+
+    private bool isLoading = true;
+
+    private Recipe? model;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+
+        if (firstRender)
+        {
+            isLoading = true;
+            StateHasChanged();
+
+            await getData();
+            
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task getData()
+    {
+        model = await RecipeService.GetRecipe(Id);
+    }
+
 }

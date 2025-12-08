@@ -4,6 +4,7 @@
 @rendermode InteractiveServer
 
 @inject IRecipeService RecipeService
+@inject NavigationManager NavigationManager
 
 <div class="manage-recipe-container">
     <div class="manage-recipe-toolbar">
@@ -60,7 +61,7 @@
 
         @foreach (Recipe recipe in filteredList(recipes))
         {
-            <div class="recipe-card">
+            <div class="recipe-card" @onclick="() => navigateToRecipe(recipe.Id)">
                 <img src="@recipe.ThumbnailUrl"/>
 
                 <div class="recipe-card-content">
@@ -102,8 +103,8 @@
     private bool isLoading = true;
 
     RecipeCategories currentCategory = RecipeCategories.All;
-
-    SortingFilter currentSortingFilter { get; set; } = SortingFilter.ZToA;
+    
+    SortingFilter currentSortingFilter { get; set; } = SortingFilter.AToZ;
 
     private string searchQuery = string.Empty;
 
@@ -151,6 +152,11 @@
         }
 
         return filtered;
+    }
+
+    private void navigateToRecipe(int recipeId)
+    {
+        NavigationManager.NavigateTo($"/recipes/{recipeId}");
     }
 
 
