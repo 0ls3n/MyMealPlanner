@@ -14,6 +14,7 @@
 @inject IMealDbService MealDbService
 @inject IRecipeService RecipeService
 @inject IDbContextFactory<WMPContext> Context
+@inject NavigationManager NavigationManager
 
 <div class="calendar">
     <div class="calendar-header">
@@ -68,6 +69,8 @@
                                 {
                                     <span class="day-content">@mealDate.Recipe.Name</span>
                                 }
+                                
+                                
                             }
                             else
                             {
@@ -148,7 +151,7 @@
                                             <img src="@recipe.ThumbnailUrl"/>
                                             <div>
                                                 <div class="modal-recipe-header">
-                                                    <h4>@recipe.Name</h4>
+                                                    <h4 @onclick="()=> navigateToRecipe(item.MealDateRecipe.Recipe.Id)" style="cursor: pointer; text-decoration: underline;">@recipe.Name</h4>
                                                     <button class="btn btn-primary"
                                                             @onclick="() => RemoveMealDate(item.MealDateRecipe)"
                                                             style="display: flex; gap: 0.5rem; align-items: center;">
@@ -189,7 +192,7 @@
                                             <div></div>
                                             <div>
                                                 <div class="modal-recipe-header">
-                                                    <h4>@item.MealDateRecipe.Name</h4>
+                                                    <h4 >@item.MealDateRecipe.Name</h4>
                                                     <button class="btn btn-primary"
                                                             @onclick="() => RemoveMealDate(item.MealDateRecipe)"
                                                             style="display: flex; gap: 0.5rem; align-items: center;">
@@ -478,6 +481,11 @@
         await getData();
         currentMealDateRecipes = MealDateRecipes.Where(x => x.Date.Year == SelectedDate.Value.Year && x.Date.Month == SelectedDate.Value.Month && x.Date.Day == SelectedDate.Value.Day).ToList();
         StateHasChanged();
+    }
+    
+    private void navigateToRecipe(int recipeId)
+    {
+        NavigationManager.NavigateTo($"/recipes/{recipeId}");
     }
 
 

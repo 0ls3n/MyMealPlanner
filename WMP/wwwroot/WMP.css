@@ -167,10 +167,6 @@
     
 }
 
-.calendar-page-content .header {
-    text-align: center;
-}
-
 .nav-item a:hover {
     color: var(--primary-color);
     border-bottom: 2px solid var(--primary-color);
@@ -200,7 +196,8 @@
 }
 
 .main-page-layout .header {
-    margin: 1rem;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
 }
 
 .calendar {
@@ -208,8 +205,8 @@
     border-radius: 10px;
     color: black;
     padding: 1rem;
-    max-width: 1200px;
     margin: auto;
+    margin-top: 1rem;
 }
 
 .calendar-header {
@@ -682,4 +679,70 @@
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+}
+
+.recipe-info-container {
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    background: white;
+    border-radius: 10px;
+    margin-top: 2rem;
+    padding: 1rem;
+    color: black;
+    text-align: left;
+}
+
+.recipe-info-header {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 1rem;
+}
+
+.recipe-info-header img {
+    object-fit: cover;
+    width: 100%;
+    border-radius: 10px;
+    text-align: right;
+    justify-self: end;
+}
+
+.recipe-info-header h2 {
+    margin-top: 1rem;
+    font-size: 2rem;
+}
+
+.recipe-info-widget {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    padding: 1rem;
+}
+
+.recipe-info-widget.header {
+    background-color: rgba(52, 121, 230, 0.05);
+    border-radius: 10px;
+    margin: 0;
+}
+
+.recipe-info-widget img {
+    width: 25px;
+    background-color: rgba(52, 121, 230, 0.2);
+    border-radius: 50%;
+    padding: 0.75rem;
+}
+
+.recipe-info-widget-container {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(2, 1fr);
+    margin-top: 1rem;
+}
+
+.recipe-info-header-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.recipe-info-ingredients {
+
 }

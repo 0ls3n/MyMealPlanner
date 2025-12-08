@@ -143,4 +143,16 @@ public class RecipeService : IRecipeService
         
         return recipes;
     }
+
+    public async Task<Recipe?> GetRecipe(int recipeId)
+    {
+        Recipe? recipe = null;
+
+        using (var context = _dbContextFactory.CreateDbContext())
+        {
+            recipe = await context.Recipes.Include(x => x.Ingredients).FirstOrDefaultAsync(x => x.Id == recipeId);
+        }
+
+        return recipe;
+    }
 }

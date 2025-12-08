@@ -1,7 +1,102 @@
 @page "/recipes/{id:int}"
 @using Microsoft.AspNetCore.Authorization
+@using WMP.Models
+@using WMP.Services
 @attribute [Authorize]
 
+@rendermode InteractiveServer
+
+@inject IRecipeService RecipeService
+@inject NavigationManager NavigationManager
+
+@if (isLoading)
+{
+    <span>Loading...</span>
+}
+else
+{
+    <div class="page">
+        <div class="recipe-info-container">
+            <div class="recipe-info-header">
+                <div class="recipe-info-header-content">
+                    <h2>@model.Name</h2>
+
+                    <div class="recipe-info-widget-container">
+                        <div class="recipe-info-widget header">
+                            <img src="Icons/icon-logo.svg"/>
+                            <span>0 Times Made</span>
+                        </div>
+
+                        <div class="recipe-info-widget header">
+                            <img src="Icons/icon-shopping.svg"/>
+                            <span>Last time made: </span>
+                        </div>
+
+                        <div class="recipe-info-widget header">
+                            <img src="Icons/icon-calendar.svg"/>
+                            <span>Added: 03-03-2025</span>
+                        </div>
+
+                    </div>
+                    
+                    <button class="btn btn-primary">Add to Calendar</button>
+                </div>
+                <img src="@model.ThumbnailUrl"/>
+            </div>
+            
+        </div>
+        
+        <div class="recipe-info-container">
+            <div class="recipe-info-ingredients">
+                <div class="recipe-info-widget">
+                    <img src="Icons/icon-shopping.svg"/>
+                    <span>Ingredients</span>
+                </div>
+            </div>
+            
+            <div class="recipe-info-instructions">
+                <div class="recipe-info-widget">
+                    <img src="Icons/icon-logo.svg"/>
+                    <span>Instructions</span>
+                </div>
+            </div>
+            
+            <div class="recipe-info-instructions">
+                <div class="recipe-info-widget">
+                    <img src="Icons/icon-calendar.svg"/>
+                    <span>Cooking History</span>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
-    
+    [Parameter] public int Id { get; set; }
+
+    private bool isLoading = true;
+
+    private Recipe? model;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+
+        if (firstRender)
+        {
+            isLoading = true;
+            StateHasChanged();
+
+            await getData();
+
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task getData()
+    {
+        model = await RecipeService.GetRecipe(Id);
+    }
+
 }

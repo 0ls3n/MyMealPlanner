@@ -14,4 +14,5 @@ public interface IRecipeService
     public Task RemoveMealDateRecipe(MealDateRecipe mealDateRecipe);
 
     public Task<List<Recipe>> GetRecipes();
+    public Task<Recipe?> GetRecipe(int recipeId);
 }
