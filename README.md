@@ -1,41 +1,41 @@
-# 🍽️ Open Source Meal Planner
+# Open Source Meal Planner
 
 An open-source **family-focused meal planner** built with **Blazor**.  
 Plan meals using an **interactive calendar**, assign **recipes**, link meals to **family members**, and automatically generate a **shopping list** — all without relying on CSS frameworks like Bootstrap or Tailwind.
 
-## ✨ Features
+## Features
 
-- 📅 **Interactive Meal Calendar**
+- **Interactive Meal Calendar**
   - Click any day to choose a recipe
   - Weekly and monthly overview
   - Edit meals directly from the calendar
 
-- 🧑‍👩‍👧‍👦 **Family-Based Planning**
+- **Family-Based Planning**
   - Register people as part of the same family
   - Assign meals to specific family members
   - Useful for preferences, portions, or dietary needs
 
-- 📖 **Recipe Management**
+- **Recipe Management**
   - Select from existing recipes
   - Quickly change recipes
   - Designed for fast meal planning
 
-- 🛒 **Automatic Shopping List**
+- **Automatic Shopping List**
   - Generates a shopping list based on planned meals
   - Combines ingredients across multiple recipes
   - Avoids duplicate items
 
-- 🎨 **Framework-Free Styling**
+- **Framework-Free Styling**
   - Written with plain CSS
   - No Bootstrap, Tailwind, or other CSS frameworks
   - Lightweight and easy to customize
 
-- 🌐 **Open Source & Self-Hostable**
+- **Open Source & Self-Hostable**
   - Fully open source
   - Great as a personal project or Blazor learning resource
   - Easy to extend
 
-## 🖼️ Screenshots
+## Screenshots
 
 _Coming soon_
 
@@ -46,13 +46,13 @@ _Coming soon_
 - Family assignment  
 - Generated shopping list  
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - Blazor (Frontend & Backend)
 - Plain CSS (no UI frameworks)
 - Database: MySql
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -75,7 +75,7 @@ Open your browser at:
 
     https://localhost:7282
 
-## 🧩 How It Works
+## How It Works
 
 1. Create a family
 2. Add family members
@@ -84,7 +84,7 @@ Open your browser at:
 5. Assign a recipe and family members
 6. View the automatically generated shopping list
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome!
 
@@ -95,11 +95,11 @@ Contributions are welcome!
 
 Suggestions and improvements are always appreciated.
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License.
 
-## ⭐ Support the Project
+## Support the Project
 
 If you find this project useful:
 - Give it a star on GitHub
