@@ -131,6 +131,8 @@ public class RecipeService : IRecipeService
 
         return mealDateRecipe;
     }
+    
+    
 
     public async Task<List<Recipe>> GetRecipes()
     {
@@ -154,5 +156,17 @@ public class RecipeService : IRecipeService
         }
 
         return recipe;
+    }
+
+    public async Task<List<MealDateRecipe>> GetMealDateRecipesFromFamily(int familyId)
+    {
+        List<MealDateRecipe> mealDateRecipes = new();
+        
+        using (var context = _dbContextFactory.CreateDbContext())
+        {
+            mealDateRecipes = await context.MealDateRecipes.Where(x => x.FamilyId == familyId).ToListAsync();
+        }
+
+        return mealDateRecipes;
     }
 }

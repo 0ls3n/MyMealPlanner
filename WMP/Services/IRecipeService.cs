@@ -15,4 +15,5 @@ public interface IRecipeService
 
     public Task<List<Recipe>> GetRecipes();
     public Task<Recipe?> GetRecipe(int recipeId);
+    public Task<List<MealDateRecipe>> GetMealDateRecipesFromFamily(int familyId);
 }

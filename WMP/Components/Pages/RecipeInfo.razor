@@ -1,6 +1,9 @@
 @page "/recipes/{id:int}"
 @using System.Text.RegularExpressions
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Identity
+@using WMP.Data
 @using WMP.Models
 @using WMP.Services
 @attribute [Authorize]
@@ -9,6 +12,8 @@
 
 @inject IRecipeService RecipeService
 @inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthProvider
+@inject UserManager<ApplicationUser> UserManager
 
 @if (isLoading)
 {
@@ -25,17 +30,24 @@ else
                     <div class="recipe-info-widget-container">
                         <div class="recipe-info-widget header">
                             <img src="Icons/icon-logo.svg"/>
-                            <span>0 Times Made</span>
+                            <span>@mealDateRecipes.Where(x => x.RecipeId == model.Id).Count() Times Made</span>
                         </div>
 
                         <div class="recipe-info-widget header">
                             <img src="Icons/icon-shopping.svg"/>
-                            <span>Last time made: </span>
+                            @if (lastTimeMadeInDays() != -1)
+                            {
+                                <span>Last time made: @(lastTimeMadeInDays() == 0 ? "Today" : $"{lastTimeMadeInDays()} days ago")</span>
+                            }
+                            else
+                            {
+                                <span>Last time made: never</span>
+                            }
                         </div>
 
                         <div class="recipe-info-widget header">
                             <img src="Icons/icon-calendar.svg"/>
-                            <span>Added: 03-03-2025</span>
+                            <span>@model.CreatedDate.ToString("d")</span>
                         </div>
 
                     </div>
@@ -92,7 +104,12 @@ else
 }
 
 @code {
+
+    [CascadingParameter(Name = "Layout")] public MainLayout? Layout { get; set; }
+
     [Parameter] public int Id { get; set; }
+
+    List<MealDateRecipe> mealDateRecipes = new();
 
     private bool isLoading = true;
 
@@ -116,7 +133,13 @@ else
 
     private async Task getData()
     {
+        var authState = await AuthProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        ApplicationUser? applicationUser = await UserManager.GetUserAsync(user);
+
         model = await RecipeService.GetRecipe(Id);
+        mealDateRecipes = await RecipeService.GetMealDateRecipesFromFamily(applicationUser.FamilyId.Value);
     }
 
     List<string> SplitByStepNumbers(string text)
@@ -128,4 +151,23 @@ else
             .ToList();
     }
 
+    private int lastTimeMadeInDays()
+    {
+        List<MealDateRecipe> filteredMealDateRecipes = mealDateRecipes.Where(x => x.RecipeId == model.Id).ToList();
+
+        if (filteredMealDateRecipes.Count != 0)
+        {
+            DateTime date = filteredMealDateRecipes.Max(x => x.Date);
+
+            DateTime today = DateTime.Today;
+
+            TimeSpan timeSpan = today - date;
+
+            return timeSpan.Days;
+        }
+        else
+        {
+            return -1;
+        }
+    }
 }

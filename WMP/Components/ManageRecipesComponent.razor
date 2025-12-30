@@ -1,10 +1,15 @@
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Identity
 @using Mono.TextTemplating
+@using WMP.Data
 @using WMP.Models
 @using WMP.Services
 @rendermode InteractiveServer
 
 @inject IRecipeService RecipeService
 @inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthProvider
+@inject UserManager<ApplicationUser> UserManager
 
 <div class="manage-recipe-container">
     <div class="manage-recipe-toolbar">
@@ -70,7 +75,7 @@
                     <div
                         style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; opacity: 0.5;">
                         <span>Ingredients: @recipe.Ingredients.Count</span>
-                        <span>Made 0x</span>
+                        <span>Made @(mealDateRecipes.Where(x => x.RecipeId == recipe.Id).Count())x</span>
                     </div>
                 </div>
             </div>
@@ -109,6 +114,7 @@
     private string searchQuery = string.Empty;
 
     private List<Recipe> recipes = new List<Recipe>();
+    private List<MealDateRecipe> mealDateRecipes = new List<MealDateRecipe>();
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -128,6 +134,12 @@
     private async Task getData()
     {
         recipes = await RecipeService.GetRecipes();
+        
+        var authState = await AuthProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        ApplicationUser? applicationUser = await UserManager.GetUserAsync(user);
+        mealDateRecipes = await RecipeService.GetMealDateRecipesFromFamily(applicationUser.FamilyId.Value);
     }
 
     private List<Recipe> filteredList(List<Recipe> listToFilter)
