@@ -744,5 +744,22 @@
 }
 
 .recipe-info-ingredients {
+}
 
+.recipe-info-ingredients-container {
+    padding: 1rem 2rem;
+    background-color: rgba(52, 121, 230, 0.05);
+    border-radius: 10px;
+}
+
+.recipe-info-ingredients-container ul {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-gap: 1rem;
+}
+
+.recipe-info-instructions-container {
+    padding: 1rem 2rem;
+    background-color: rgba(52, 121, 230, 0.05);
+    border-radius: 10px;
 }

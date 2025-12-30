@@ -1,4 +1,5 @@
 @page "/recipes/{id:int}"
+@using System.Text.RegularExpressions
 @using Microsoft.AspNetCore.Authorization
 @using WMP.Models
 @using WMP.Services
@@ -38,29 +39,48 @@ else
                         </div>
 
                     </div>
-                    
+
                     <button class="btn btn-primary">Add to Calendar</button>
                 </div>
                 <img src="@model.ThumbnailUrl"/>
             </div>
-            
+
         </div>
-        
+
         <div class="recipe-info-container">
             <div class="recipe-info-ingredients">
                 <div class="recipe-info-widget">
                     <img src="Icons/icon-shopping.svg"/>
                     <span>Ingredients</span>
                 </div>
+
+                <div class="recipe-info-ingredients-container">
+                    <ul>
+                        @foreach (var ingredient in model.Ingredients)
+                        {
+                            <li>@($"{ingredient.Measure} - {ingredient.Name}")</li>
+                        }
+                    </ul>
+                </div>
+
             </div>
-            
+
             <div class="recipe-info-instructions">
                 <div class="recipe-info-widget">
                     <img src="Icons/icon-logo.svg"/>
                     <span>Instructions</span>
                 </div>
+
+                <div class="recipe-info-instructions-container">
+                    <ol>
+                        @foreach (var step in SplitByStepNumbers(model.Approach))
+                        {
+                            <li style="margin-top: 1rem;">@step</li>
+                        }
+                    </ol>
+                </div>
             </div>
-            
+
             <div class="recipe-info-instructions">
                 <div class="recipe-info-widget">
                     <img src="Icons/icon-calendar.svg"/>
@@ -97,6 +117,15 @@ else
     private async Task getData()
     {
         model = await RecipeService.GetRecipe(Id);
+    }
+
+    List<string> SplitByStepNumbers(string text)
+    {
+        return Regex
+            .Split(text, @"(?=\d+\.\s)")
+            .Where(s => !string.IsNullOrWhiteSpace(s))
+            .Select(s => Regex.Replace(s, @"^\d+\.\s*", "")) // remove "1. "
+            .ToList();
     }
 
 }
