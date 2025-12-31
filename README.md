@@ -1,7 +1,7 @@
 # Open Source Meal Planner
 
 An open-source **family-focused meal planner** built with **Blazor**.  
-Plan meals using an **interactive calendar**, assign **recipes**, link meals to **family members**, and automatically generate a **shopping list** — all without relying on CSS frameworks like Bootstrap or Tailwind.
+Plan meals using an **interactive calendar**, assign **recipes**, link meals to **family members**, and automatically generate a **shopping list**.
 
 ## Features
 
