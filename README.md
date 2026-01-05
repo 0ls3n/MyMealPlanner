@@ -63,8 +63,8 @@ _Coming soon_
 
 Clone the repository:
 
-    git clone https://github.com/your-username/meal-planner.git
-    cd meal-planner
+    git clone https://github.com/0ls3n/MyMealPlanner.git
+    cd MyMealPlanner
 
 Run the project:
 
